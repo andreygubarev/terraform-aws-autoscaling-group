@@ -1,0 +1,90 @@
+#!/usr/bin/env bash
+set -ex
+export DEBIAN_FRONTEND=noninteractive
+
+# config ######################################################################
+export BOOTSTRAP_BUCKET=${bootstrap_bucket}
+export BOOTSTRAP_OBJECT=${bootstrap_object}
+export BOOTSTRAP_VERSION=${bootstrap_version}
+export AWSCLI_VERSION=2.2.44
+
+# dependencies ################################################################
+apt update && apt install -yq --no-install-recommends curl jq unzip
+
+pushd /opt
+curl -o awscliv2.zip "https://awscli.amazonaws.com/awscli-exe-linux-$(uname -m)-$AWSCLI_VERSION.zip"
+unzip -q -o awscliv2.zip
+./aws/install
+rm ./awscliv2.zip
+popd
+
+curl -fsSL https://packages.fluentbit.io/fluentbit.key | apt-key add -
+echo "deb https://packages.fluentbit.io/ubuntu/$(lsb_release -cs) $(lsb_release -cs) main" > /etc/apt/sources.list.d/fluentbit.list
+apt update && apt install -yq --no-install-recommends td-agent-bit
+
+# metadata ####################################################################
+export EC2_INSTANCE_REGION=$( curl -s http://169.254.169.254/latest/dynamic/instance-identity/document | jq -r '.region' )
+export EC2_INSTANCE_ID=$( curl -s http://169.254.169.254/latest/meta-data/instance-id )
+export EC2_INSTANCE_ASG=$( aws ec2 describe-tags --filters Name=resource-id,Values=$EC2_INSTANCE_ID | jq -c -r '.Tags | map(select(.Key == "aws:autoscaling:groupName"))[0].Value' )
+if [ "$EC2_INSTANCE_ASG" == "null" ]; then
+    unset EC2_INSTANCE_ASG
+fi
+
+# logs ########################################################################
+sed -i '1 i\@INCLUDE custom_*.conf' /etc/td-agent-bit/td-agent-bit.conf
+mkdir -p /var/lib/fluentbit
+cat > /etc/td-agent-bit/custom_cloudinit.conf << EOL
+[INPUT]
+    Name tail
+    Tag cloudinit.output
+    Path /var/log/cloud-init-output.log
+    Read_from_Head True
+    Skip_Empty_Lines On
+    DB /var/lib/fluentbit/cloudinit.db
+
+[OUTPUT]
+    Name cloudwatch_logs
+    Match cloudinit.output
+    region $EC2_INSTANCE_REGION
+    log_key log
+    log_group_name /var/log/cloud-init-output.log
+    log_stream_name $EC2_INSTANCE_ID
+    log_retention_days 7
+    auto_create_group On
+EOL
+service td-agent-bit start
+
+# bootstrap ###################################################################
+function bootstrap {
+    aws s3api get-object \
+        --bucket $BOOTSTRAP_BUCKET \
+        --key $BOOTSTRAP_OBJECT \
+        --version-id $BOOTSTRAP_VERSION \
+        /opt/bootstrap.run
+    chown ubuntu:ubuntu /opt/bootstrap.run
+    chmod 0755 /opt/bootstrap.run
+    sudo -E -H -u ubuntu /opt/bootstrap.run --chown
+}
+
+function lifecycle_hook_continue {
+    export RC=$?
+    [ -v EC2_INSTANCE_ASG ] && aws autoscaling complete-lifecycle-action \
+        --instance-id $EC2_INSTANCE_ID \
+        --lifecycle-hook-name cloud-init \
+        --auto-scaling-group-name $EC2_INSTANCE_ASG \
+        --lifecycle-action-result CONTINUE
+    exit $RC
+}
+
+function lifecycle_hook_abandon {
+    export RC=$?
+    sleep 30
+    [ -v EC2_INSTANCE_ASG ] && aws autoscaling complete-lifecycle-action \
+        --instance-id $EC2_INSTANCE_ID \
+        --lifecycle-hook-name cloud-init \
+        --auto-scaling-group-name $EC2_INSTANCE_ASG \
+        --lifecycle-action-result ABANDON
+    exit $RC
+}
+
+bootstrap && lifecycle_hook_continue || lifecycle_hook_abandon
