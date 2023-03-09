@@ -8,6 +8,8 @@ resource "tls_private_key" "this" {
 
 resource "aws_key_pair" "this" {
   key_name   = var.name
+  tags = local.tags
+
   public_key = tls_private_key.this.public_key_openssh
 }
 
@@ -17,6 +19,7 @@ resource "aws_key_pair" "this" {
 
 resource "aws_iam_role" "this" {
   name = var.name
+  tags = local.tags
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -32,6 +35,8 @@ resource "aws_iam_role" "this" {
 
 resource "aws_iam_instance_profile" "this" {
   name = var.name
+  tags = local.tags
+
   role = aws_iam_role.this.name
 }
 
@@ -61,8 +66,9 @@ resource "aws_iam_role_policy_attachment" "cloudwatch_agent_server" {
   role       = aws_iam_role.this.name
 }
 
-resource "aws_iam_policy" "aws_autoscaling_group" {
-  name = "${var.name}-aws-autoscaling-group"
+resource "aws_iam_policy" "complete_lifecycle_action" {
+  name = "${var.name}-lifecycle-action"
+  tags = local.tags
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -76,8 +82,8 @@ resource "aws_iam_policy" "aws_autoscaling_group" {
   })
 }
 
-resource "aws_iam_role_policy_attachment" "aws_autoscaling_group" {
-  policy_arn = aws_iam_policy.aws_autoscaling_group.arn
+resource "aws_iam_role_policy_attachment" "complete_lifecycle_action" {
+  policy_arn = aws_iam_policy.complete_lifecycle_action.arn
   role       = aws_iam_role.this.name
 }
 
@@ -87,6 +93,7 @@ resource "aws_iam_role_policy_attachment" "aws_autoscaling_group" {
 
 resource "aws_s3_bucket" "cloud_init" {
   bucket = "cloudinit-${data.aws_caller_identity.this.account_id}-${var.name}"
+  tags = local.tags
 }
 
 resource "aws_s3_bucket_acl" "cloud_init" {
@@ -104,8 +111,9 @@ resource "aws_s3_bucket_versioning" "cloud_init" {
 resource "aws_s3_object" "cloud_init" {
   bucket  = aws_s3_bucket.cloud_init.bucket
   key     = "bootstrap.run"
-  content = var.instance_user_data
+  tags = local.tags
 
+  content = var.instance_user_data
   etag = md5(var.instance_user_data)
 
   depends_on = [
@@ -136,6 +144,7 @@ data "cloudinit_config" "this" {
 
 resource "aws_iam_policy" "cloud_init" {
   name = "${var.name}-cloud-init"
+  tags = local.tags
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -163,6 +172,7 @@ resource "aws_iam_role_policy_attachment" "cloud_init" {
 
 resource "aws_launch_template" "this" {
   name = var.name
+  tags = local.tags
 
   instance_type                        = data.aws_ec2_instance_type.this.instance_type
   image_id                             = data.aws_ami.this.id
@@ -199,6 +209,7 @@ resource "aws_launch_template" "this" {
 
 resource "aws_autoscaling_group" "this" {
   name                  = var.name
+
   min_size              = var.group_capacity_min
   max_size              = var.group_capacity_max
   desired_capacity      = var.group_capacity_min
