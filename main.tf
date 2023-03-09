@@ -240,8 +240,8 @@ resource "aws_autoscaling_group" "this" {
   dynamic "tag" {
     for_each = local.tags
     content {
-      key                 = tag.value.key
-      value               = tag.value.value
+      key                 = tag.key
+      value               = tag.value
       propagate_at_launch = true
     }
   }
