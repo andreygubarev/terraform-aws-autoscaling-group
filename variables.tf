@@ -1,12 +1,12 @@
 variable "name" {
-  type = string
+  type        = string
   description = "Name of the resources"
 }
 
 variable "tags" {
-  type = map(string)
+  type        = map(string)
   description = "Tags to apply to the resources"
-  default = {}
+  default     = {}
 }
 
 locals {
@@ -23,11 +23,11 @@ locals {
 ################################################################################
 
 variable "aws_region" {
-  type = string
+  type        = string
   description = "AWS region to deploy the resources"
 }
 variable "aws_profile" {
-  type = string
+  type        = string
   description = "AWS profile to use"
 }
 
@@ -36,17 +36,17 @@ variable "aws_profile" {
 ################################################################################
 
 variable "network_vpc" {
-  type = string
+  type        = string
   description = "VPC ID to allocate the resources"
 }
 
 variable "network_subnets" {
-  type = list(string)
+  type        = list(string)
   description = "Subnet IDs to allocate the resources"
 }
 
 variable "network_security_groups" {
-  type = list(string)
+  type        = list(string)
   description = "Security Group IDs to attach to the EC2 instances"
 }
 
@@ -55,36 +55,36 @@ variable "network_security_groups" {
 ################################################################################
 
 variable "instance_type" {
-  type = string
+  type        = string
   description = "EC2 instance type"
 }
 
 variable "instance_ami" {
-  type = string
+  type        = string
   description = "EC2 instance image ID"
 }
 
 variable "instance_ami_owner" {
-  type = string
+  type        = string
   description = "EC2 instance image owner"
 }
 
 variable "instance_user_data" {
-  type    = string
-  default = ""
+  type        = string
   description = "EC2 instance user data"
+  default     = ""
 }
 
 variable "instance_profile_policies" {
-  type    = list(string)
-  default = []
+  type        = list(string)
   description = "EC2 instance profile policies"
+  default     = []
 }
 
 variable "instance_keypair_algoirthm" {
-  type    = string
-  default = "ED25519"
+  type        = string
   description = "EC2 instance keypair algorithm"
+  default     = "ED25519"
 }
 
 ################################################################################
@@ -92,15 +92,15 @@ variable "instance_keypair_algoirthm" {
 ################################################################################
 
 variable "volume_type" {
-  type    = string
-  default = "gp3"
+  type        = string
   description = "EC2 volume type"
+  default     = "gp3"
 }
 
 variable "volume_size" {
-  type    = string
-  default = "32"
+  type        = string
   description = "EC2 volume size"
+  default     = 32
 }
 
 ################################################################################
@@ -108,35 +108,35 @@ variable "volume_size" {
 ################################################################################
 
 variable "group_capacity_min" {
-  type = string
+  type        = string
   description = "Minimum number of instances in the autoscaling group"
 }
 
 variable "group_capacity_max" {
-  type = string
+  type        = string
   description = "Maximum number of instances in the autoscaling group"
 }
 
 variable "group_timeout_cooldown" {
-  type    = string
-  default = 60
+  type        = string
   description = "Cooldown period in seconds"
+  default     = 60
 }
 
 variable "group_timeout_grace_period" {
-  type    = string
-  default = 60
+  type        = string
   description = "Grace period in seconds"
+  default     = 60
 }
 
 variable "group_timeout_heartbeat" {
-  type    = string
-  default = 120
+  type        = string
   description = "Cloud-init heartbeat timeout in seconds"
+  default     = 120
 }
 
 variable "group_instance_refresh" {
-  type    = bool
-  default = false
+  type        = bool
   description = "Enable instance refresh"
+  default     = false
 }
