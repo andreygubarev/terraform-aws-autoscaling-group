@@ -1,4 +1,29 @@
 ################################################################################
+# Name
+################################################################################
+
+resource "random_string" "this" {
+  length = 4
+
+  # only upper case letters
+  special = false
+  upper   = true
+  lower   = false
+  numeric = false
+}
+
+locals {
+  name        = var.name
+  name_unique = "${var.name}-${random_string.this.result}"
+  tags = merge(
+    var.tags,
+    {
+      "ManagedBy" = "Terraform"
+    },
+  )
+}
+
+################################################################################
 # Keypair
 ################################################################################
 
@@ -7,8 +32,8 @@ resource "tls_private_key" "this" {
 }
 
 resource "aws_key_pair" "this" {
-  key_name   = var.name
-  tags = local.tags
+  key_name = local.name
+  tags     = local.tags
 
   public_key = tls_private_key.this.public_key_openssh
 }
@@ -18,7 +43,7 @@ resource "aws_key_pair" "this" {
 ################################################################################
 
 resource "aws_iam_role" "this" {
-  name = var.name
+  name = local.name_unique
   tags = local.tags
 
   assume_role_policy = jsonencode({
@@ -34,7 +59,7 @@ resource "aws_iam_role" "this" {
 }
 
 resource "aws_iam_instance_profile" "this" {
-  name = var.name
+  name = local.name_unique
   tags = local.tags
 
   role = aws_iam_role.this.name
@@ -67,7 +92,7 @@ resource "aws_iam_role_policy_attachment" "cloudwatch_agent_server" {
 }
 
 resource "aws_iam_policy" "complete_lifecycle_action" {
-  name = "${var.name}-lifecycle-action"
+  name = "${local.name_unique}-lifecycle-action"
   tags = local.tags
 
   policy = jsonencode({
@@ -92,8 +117,8 @@ resource "aws_iam_role_policy_attachment" "complete_lifecycle_action" {
 ################################################################################
 
 resource "aws_s3_bucket" "cloud_init" {
-  bucket = "cloudinit-${data.aws_caller_identity.this.account_id}-${var.name}"
-  tags = local.tags
+  bucket = "cloud-init-${local.name_unique}"
+  tags   = local.tags
 }
 
 resource "aws_s3_bucket_acl" "cloud_init" {
@@ -109,12 +134,12 @@ resource "aws_s3_bucket_versioning" "cloud_init" {
 }
 
 resource "aws_s3_object" "cloud_init" {
-  bucket  = aws_s3_bucket.cloud_init.bucket
-  key     = "bootstrap.run"
-  tags = local.tags
+  bucket = aws_s3_bucket.cloud_init.bucket
+  key    = "bootstrap.run"
+  tags   = local.tags
 
   content = var.instance_user_data
-  etag = md5(var.instance_user_data)
+  etag    = md5(var.instance_user_data)
 
   depends_on = [
     var.instance_ami,
@@ -143,7 +168,7 @@ data "cloudinit_config" "this" {
 }
 
 resource "aws_iam_policy" "cloud_init" {
-  name = "${var.name}-cloud-init"
+  name = "${local.name_unique}-cloud-init"
   tags = local.tags
 
   policy = jsonencode({
@@ -171,7 +196,7 @@ resource "aws_iam_role_policy_attachment" "cloud_init" {
 ################################################################################
 
 resource "aws_launch_template" "this" {
-  name = var.name
+  name = local.name
   tags = local.tags
 
   instance_type                        = data.aws_ec2_instance_type.this.instance_type
@@ -208,7 +233,7 @@ resource "aws_launch_template" "this" {
 ################################################################################
 
 resource "aws_autoscaling_group" "this" {
-  name                  = var.name
+  name = local.name
 
   min_size              = var.group_capacity_min
   max_size              = var.group_capacity_max
@@ -275,7 +300,8 @@ resource "aws_autoscaling_group" "this" {
 }
 
 resource "aws_autoscaling_lifecycle_hook" "this" {
-  name                   = "cloud-init"
+  name = "cloud-init"
+
   autoscaling_group_name = aws_autoscaling_group.this.name
   default_result         = "ABANDON"
   heartbeat_timeout      = var.group_timeout_heartbeat
