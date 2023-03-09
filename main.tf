@@ -120,7 +120,7 @@ data "cloudinit_config" "this" {
 
   part {
     content_type = "text/x-shellscript"
-    content = templatefile("${path.module}/cloud-init.tpl.sh", {
+    content = templatefile("${path.module}/cloud-init.sh.tftpl", {
       bootstrap_bucket  = aws_s3_bucket.cloud_init.bucket
       bootstrap_object  = aws_s3_object.cloud_init.id
       bootstrap_version = aws_s3_object.cloud_init.version_id
