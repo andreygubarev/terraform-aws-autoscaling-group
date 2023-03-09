@@ -1,6 +1,16 @@
 variable "name" {
   type        = string
   description = "Name of the resources"
+
+  validation {
+    condition     = length(var.name) >= 4 && length(var.name) <= 16
+    error_message = "name must be 4-16 characters long, while it is ${length(var.name)}"
+  }
+
+  validation {
+    condition     = can(regex("^([a-zA-Z])([a-zA-Z0-9-]*)$", var.name))
+    error_message = "name must start with a character, and include only characters, digits, and dashes"
+  }
 }
 
 variable "tags" {
