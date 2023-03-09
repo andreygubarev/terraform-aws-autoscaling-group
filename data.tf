@@ -48,8 +48,8 @@ data "aws_ec2_instance_type" "this" {
 data "aws_ami" "this" {
   filter {
     name   = "image-id"
-    values = [var.instance_image_id]
+    values = [var.instance_ami]
   }
   most_recent = true
-  owners      = [var.instance_image_owner]
+  owners      = [var.instance_ami_owner]
 }

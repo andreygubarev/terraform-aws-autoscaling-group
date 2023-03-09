@@ -6,6 +6,7 @@ variable "name" {
 variable "tags" {
   type = map(string)
   description = "Tags to apply to the resources"
+  default = {}
 }
 
 locals {
@@ -58,12 +59,12 @@ variable "instance_type" {
   description = "EC2 instance type"
 }
 
-variable "instance_image_id" {
+variable "instance_ami" {
   type = string
   description = "EC2 instance image ID"
 }
 
-variable "instance_image_owner" {
+variable "instance_ami_owner" {
   type = string
   description = "EC2 instance image owner"
 }

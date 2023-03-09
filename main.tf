@@ -109,8 +109,8 @@ resource "aws_s3_object" "cloud_init" {
   etag = md5(var.instance_user_data)
 
   depends_on = [
-    var.instance_image_id,
-    var.instance_image_owner
+    var.instance_ami,
+    var.instance_ami_owner
   ]
 }
 
@@ -129,8 +129,8 @@ data "cloudinit_config" "this" {
   }
 
   depends_on = [
-    var.instance_image_id,
-    var.instance_image_owner
+    var.instance_ami,
+    var.instance_ami_owner
   ]
 }
 
