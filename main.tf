@@ -189,12 +189,7 @@ resource "aws_launch_template" "this" {
   tag_specifications {
     resource_type = "volume"
 
-    tags = {
-      Workload    = var.metadata.labels.workload
-      Environment = var.metadata.labels.environment
-      Component   = var.metadata.labels.component
-      Instance    = var.metadata.labels.instance
-    }
+    tags = local.tags
   }
 }
 
@@ -242,9 +237,18 @@ resource "aws_autoscaling_group" "this" {
     "GroupTotalInstances"
   ]
 
+  dynamic "tag" {
+    for_each = local.tags
+    content {
+      key                 = tag.value.key
+      value               = tag.value.value
+      propagate_at_launch = true
+    }
+  }
+
   tag {
     key                 = "Name"
-    value               = local.name
+    value               = var.name
     propagate_at_launch = true
   }
 
