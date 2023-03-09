@@ -32,7 +32,7 @@ resource "aws_key_pair" "this" {
 }
 
 resource "aws_secretsmanager_secret" "this" {
-  name = "${local.name}-keypair"
+  name = "${local.name_unique}-keypair"
 }
 
 resource "aws_secretsmanager_secret_version" "this" {
