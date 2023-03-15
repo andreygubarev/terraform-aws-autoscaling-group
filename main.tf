@@ -281,8 +281,6 @@ resource "aws_autoscaling_group" "this" {
 
   lifecycle {
     ignore_changes = [
-      min_size,
-      max_size,
       desired_capacity,
 
       target_group_arns,
