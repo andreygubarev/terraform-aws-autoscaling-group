@@ -116,7 +116,16 @@ resource "aws_s3_bucket" "cloud_init" {
   bucket = "cloud-init-${local.name_unique}"
 }
 
+resource "aws_s3_bucket_ownership_controls" "cloud_init" {
+  bucket = aws_s3_bucket.cloud_init.id
+  rule {
+    object_ownership = "BucketOwnerPreferred"
+  }
+}
+
 resource "aws_s3_bucket_acl" "cloud_init" {
+  depends_on = [aws_s3_bucket_ownership_controls.cloud_init]
+
   bucket = aws_s3_bucket.cloud_init.id
   acl    = "private"
 }
