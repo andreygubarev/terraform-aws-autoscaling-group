@@ -3,9 +3,9 @@ set -ex
 export DEBIAN_FRONTEND=noninteractive
 
 # config ######################################################################
-export BOOTSTRAP_BUCKET=${bootstrap_bucket}
-export BOOTSTRAP_OBJECT=${bootstrap_object}
-export BOOTSTRAP_VERSION=${bootstrap_version}
+export BOOTSTRAP_BUCKET=${bootstrap_bucket:?}
+export BOOTSTRAP_OBJECT=${bootstrap_object:?}
+export BOOTSTRAP_VERSION=${bootstrap_version:?}
 export AWSCLI_VERSION=2.2.44
 
 # dependencies ################################################################
