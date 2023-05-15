@@ -31,9 +31,14 @@ if [ "$EC2_INSTANCE_ASG" == "null" ]; then
 fi
 
 # logs ########################################################################
-sed -i '1 i\@INCLUDE custom_*.conf' /etc/td-agent-bit/td-agent-bit.conf
 mkdir -p /var/lib/fluentbit
-cat > /etc/td-agent-bit/custom_cloudinit.conf << EOL
+mkdir -p /etc/td-agent-bit/conf.d
+
+FLUENTBIT_CONF="/etc/td-agent-bit/td-agent-bit.conf"
+FLUENTBIN_INCLUDE="@INCLUDE /etc/td-agent-bit/conf.d/*.conf"
+grep -qxF "$FLUENTBIN_INCLUDE" "$FLUENTBIT_CONF" || echo -e "\n$FLUENTBIN_INCLUDE\n" >> "$FLUENTBIT_CONF"
+
+cat > /etc/td-agent-bit/conf.d/cloudinit.conf << EOL
 [INPUT]
     Name tail
     Tag cloudinit.output
