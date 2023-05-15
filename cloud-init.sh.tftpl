@@ -100,4 +100,9 @@ function lifecycle_hook_abandon {
     exit $RC
 }
 
-bootstrap && lifecycle_hook_continue || lifecycle_hook_abandon
+if bootstrap
+then
+    lifecycle_hook_continue
+else
+    lifecycle_hook_abandon
+fi
