@@ -23,9 +23,15 @@ echo "deb https://packages.fluentbit.io/ubuntu/$(lsb_release -cs) $(lsb_release 
 apt update && apt install -yq --no-install-recommends td-agent-bit
 
 # metadata ####################################################################
-export EC2_INSTANCE_REGION=$( curl -s http://169.254.169.254/latest/dynamic/instance-identity/document | jq -r '.region' )
-export EC2_INSTANCE_ID=$( curl -s http://169.254.169.254/latest/meta-data/instance-id )
-export EC2_INSTANCE_ASG=$( aws ec2 describe-tags --filters Name=resource-id,Values="$EC2_INSTANCE_ID" | jq -c -r '.Tags | map(select(.Key == "aws:autoscaling:groupName"))[0].Value' )
+EC2_INSTANCE_REGION=$( curl -s http://169.254.169.254/latest/dynamic/instance-identity/document | jq -r '.region' )
+export EC2_INSTANCE_REGION
+
+EC2_INSTANCE_ID=$( curl -s http://169.254.169.254/latest/meta-data/instance-id )
+export EC2_INSTANCE_ID
+
+EC2_INSTANCE_ASG=$( aws ec2 describe-tags --filters Name=resource-id,Values="$EC2_INSTANCE_ID" | jq -c -r '.Tags | map(select(.Key == "aws:autoscaling:groupName"))[0].Value' )
+export EC2_INSTANCE_ASG
+
 if [ "$EC2_INSTANCE_ASG" == "null" ]; then
     unset EC2_INSTANCE_ASG
 fi
