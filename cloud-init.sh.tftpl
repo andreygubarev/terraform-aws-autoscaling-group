@@ -38,6 +38,8 @@ FLUENTBIT_CONF="/etc/td-agent-bit/td-agent-bit.conf"
 FLUENTBIN_INCLUDE="@INCLUDE /etc/td-agent-bit/conf.d/*.conf"
 grep -qxF "$FLUENTBIN_INCLUDE" "$FLUENTBIT_CONF" || echo -e "\n$FLUENTBIN_INCLUDE\n" >> "$FLUENTBIT_CONF"
 
+sed -i 's/^\([[:space:]]*\)log_level[[:space:]]*info$/\1log_level warning/' "$FLUENTBIT_CONF"
+
 cat > /etc/td-agent-bit/conf.d/cloudinit.conf << EOL
 [INPUT]
     Name tail
