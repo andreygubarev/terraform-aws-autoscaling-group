@@ -141,8 +141,8 @@ resource "aws_s3_object" "cloud_init" {
   bucket = aws_s3_bucket.cloud_init.bucket
   key    = "bootstrap.run"
 
-  content = var.instance_user_data
-  etag    = md5(var.instance_user_data)
+  source = var.instance_user_data
+  etag    = md5(file(var.instance_user_data))
 
   depends_on = [
     var.instance_ami,

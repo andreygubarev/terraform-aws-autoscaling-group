@@ -60,7 +60,7 @@ variable "instance_ami_owner" {
 variable "instance_user_data" {
   type        = string
   description = "EC2 instance user data"
-  default     = ""
+  default     = "Path to the user data file"
 }
 
 variable "instance_profile_policies" {
