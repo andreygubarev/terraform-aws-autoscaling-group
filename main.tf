@@ -305,3 +305,20 @@ resource "aws_autoscaling_lifecycle_hook" "this" {
   heartbeat_timeout      = var.group_timeout_heartbeat
   lifecycle_transition   = "autoscaling:EC2_INSTANCE_LAUNCHING"
 }
+
+resource "aws_autoscaling_notification" "this" {
+  count = var.group_notification_topic != "" ? 1 : 0
+
+  group_names = [
+    aws_autoscaling_group.this.name,
+  ]
+
+  notifications = [
+    "autoscaling:EC2_INSTANCE_LAUNCH",
+    "autoscaling:EC2_INSTANCE_TERMINATE",
+    "autoscaling:EC2_INSTANCE_LAUNCH_ERROR",
+    "autoscaling:EC2_INSTANCE_TERMINATE_ERROR",
+  ]
+
+  topic_arn = var.group_notification_topic
+}

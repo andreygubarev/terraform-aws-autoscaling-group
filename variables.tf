@@ -128,3 +128,9 @@ variable "group_instance_refresh" {
   description = "Enable instance refresh"
   default     = false
 }
+
+variable "group_notification_topic" {
+  type        = string
+  description = "SNS topic to send notifications"
+  default     = ""
+}
