@@ -73,16 +73,16 @@ cat > /etc/td-agent-bit/conf.d/cloudinit.conf << EOL
 EOL
 service td-agent-bit start
 
-# bootstrap ###################################################################
-function bootstrap {
+# provision ###################################################################
+function provision {
     aws s3api get-object \
         --bucket "$BOOTSTRAP_BUCKET" \
         --key "$BOOTSTRAP_OBJECT" \
         --version-id "$BOOTSTRAP_VERSION" \
-        /opt/bootstrap.run
-    chown ubuntu:ubuntu /opt/bootstrap.run
-    chmod 0755 /opt/bootstrap.run
-    sudo -E -H -u ubuntu /opt/bootstrap.run --chown
+        /opt/provisioner.run
+    chown root:root /opt/provisioner.run
+    chmod 0750 /opt/provisioner.run
+    sudo -E -H -u root /opt/provisioner.run --chown
 }
 
 function lifecycle_hook_continue {
@@ -106,7 +106,7 @@ function lifecycle_hook_abandon {
     exit $RC
 }
 
-if bootstrap
+if provision
 then
     lifecycle_hook_continue
 else
