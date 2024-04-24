@@ -68,9 +68,9 @@ resource "aws_iam_instance_profile" "this" {
 ################################################################################
 
 resource "aws_iam_role_policy_attachment" "this" {
-  for_each = toset(var.instance_profile_policies)
+  for_each = var.instance_profile_policies
 
-  policy_arn = each.key
+  policy_arn = each.value
   role       = aws_iam_role.this.name
 }
 
@@ -142,7 +142,7 @@ resource "aws_s3_object" "cloud_init" {
   key    = "bootstrap.run"
 
   source = var.instance_user_data
-  etag    = md5(file(var.instance_user_data))
+  etag   = md5(file(var.instance_user_data))
 
   depends_on = [
     var.instance_ami,

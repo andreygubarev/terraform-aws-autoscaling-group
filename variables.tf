@@ -64,9 +64,9 @@ variable "instance_user_data" {
 }
 
 variable "instance_profile_policies" {
-  type        = list(string)
+  type        = map(string)
   description = "EC2 instance profile policies"
-  default     = []
+  default     = {}
 }
 
 variable "instance_keypair_algoirthm" {
