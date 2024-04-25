@@ -137,23 +137,28 @@ resource "aws_s3_bucket_versioning" "cloud_init" {
   }
 }
 
+resource "null_resource" "cloud_init" {
+  triggers = {
+    content_md5 = data.local_file.cloud_init.content_md5
+  }
+}
+
 resource "aws_s3_object" "cloud_init" {
   bucket = aws_s3_bucket.cloud_init.bucket
   key    = "bootstrap.run"
 
-  source = var.instance_user_data
-  etag   = md5(file(var.instance_user_data))
+  source      = data.local_file.cloud_init.filename
+  source_hash = data.local_file.cloud_init.content_md5
+  etag        = data.local_file.cloud_init.content_md5
 
   depends_on = [
     var.instance_ami,
-    var.instance_ami_owner
+    var.instance_ami_owner,
   ]
 
   lifecycle {
-    ignore_changes = [source, etag]
-    replace_triggered_by = [
-      md5(file(var.instance_user_data))
-    ]
+    ignore_changes       = [source, source_hash, etag]
+    replace_triggered_by = [null_resource.cloud_init]
   }
 }
 
