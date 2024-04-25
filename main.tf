@@ -148,6 +148,13 @@ resource "aws_s3_object" "cloud_init" {
     var.instance_ami,
     var.instance_ami_owner
   ]
+
+  lifecycle {
+    ignore_changes = [source, etag]
+    replace_triggered_by = [
+      md5(file(var.instance_user_data))
+    ]
+  }
 }
 
 data "cloudinit_config" "this" {
