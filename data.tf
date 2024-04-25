@@ -53,3 +53,7 @@ data "aws_ami" "this" {
   most_recent = true
   owners      = [var.instance_ami_owner]
 }
+
+data "local_file" "cloud_init" {
+  filename = var.instance_user_data
+}
